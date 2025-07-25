@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useEditorStore } from "../store/editor-store";
 import { applyThemeToElement } from "@/utils/apply-theme";
 import { useThemePresetFromUrl } from "@/hooks/use-theme-preset-from-url";
@@ -30,22 +30,33 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   const { themeState, setThemeState } = useEditorStore();
+  const [isClient, setIsClient] = useState(false);
 
   // Handle theme preset from URL
   useThemePresetFromUrl();
 
+  // Set isClient to true after hydration
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    // Only apply theme changes on the client side after hydration
+    if (!isClient) return;
+    
     const root = document.documentElement;
     if (!root) return;
 
     applyThemeToElement(themeState, root);
-  }, [themeState]);
+  }, [themeState, isClient]);
 
   const handleThemeChange = (newMode: Theme) => {
     setThemeState({ ...themeState, currentMode: newMode });
   };
 
   const handleThemeToggle = (coords?: Coords) => {
+    if (!isClient) return;
+    
     const root = document.documentElement;
     const newMode = themeState.currentMode === "light" ? "dark" : "light";
 

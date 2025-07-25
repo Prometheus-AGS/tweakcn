@@ -3,15 +3,7 @@ export function applyStyleToElement(
   key: string,
   value: string
 ) {
-  const currentStyle = element.getAttribute("style") || "";
-  // Remove the existing variable definitions with the same name
-  const cleanedStyle = currentStyle.replace(
-    new RegExp(`--${key}:\\s*[^;]+;?`, "g"), 
-    ""
-  ).trim();
-
-  element.setAttribute(
-    "style",
-    `${cleanedStyle}--${key}: ${value};`
-  );
+  // Use setProperty instead of directly manipulating the style attribute
+  // This avoids hydration mismatches by not touching the style attribute directly
+  element.style.setProperty(`--${key}`, value);
 }
