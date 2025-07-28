@@ -1,19 +1,40 @@
-version: "3.8"
+# Docker Compose configuration
 
 services:
   app:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BASE_URL=${BASE_URL}
+        - DATABASE_URL=${DATABASE_URL}
+        - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+        - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+        - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+        - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+        - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+        - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+        - GROQ_API_KEY=${GROQ_API_KEY}
+        - POLAR_ACCESS_TOKEN=${POLAR_ACCESS_TOKEN}
+        - POLAR_WEBHOOK_SECRET=${POLAR_WEBHOOK_SECRET}
+        - NEXT_PUBLIC_TWEAKCN_PRO_PRODUCT_ID=${NEXT_PUBLIC_TWEAKCN_PRO_PRODUCT_ID}
+        - NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
+        - NODE_ENV=${NODE_ENV:-production}
+        - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
     ports:
       - "3131:3000"
     env_file:
       - .env.local
     depends_on:
       - db
-    volumes:
-      - .:/app
-      - /app/node_modules
-    command: >
-      sh -c "npx drizzle-kit push && npm run dev"
+      - redis
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   db:
     image: postgres:15
@@ -27,5 +48,20 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --appendonly yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   pgdata:
+  redisdata:

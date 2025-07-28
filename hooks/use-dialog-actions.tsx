@@ -132,7 +132,7 @@ function useDialogActionsStore(): DialogActionsContextType {
     const currentPreset = presetId ? getPreset(presetId) : undefined;
 
     if (!currentPreset) {
-      setShareUrl(`https://tweakcn.com/editor/theme`);
+      setShareUrl(`${process.env.NEXT_PUBLIC_BASE_URL || "https://tweakcn.prometheusags.ai"}/editor/theme`);
       setShareDialogOpen(true);
       return;
     }
@@ -146,8 +146,8 @@ function useDialogActionsStore(): DialogActionsContextType {
     });
 
     const url = isSavedPreset
-      ? `https://tweakcn.com/themes/${id}`
-      : `https://tweakcn.com/editor/theme?theme=${id}`;
+      ? `${process.env.NEXT_PUBLIC_BASE_URL || "https://tweakcn.prometheusags.ai"}/themes/${id}`
+      : `${process.env.NEXT_PUBLIC_BASE_URL || "https://tweakcn.prometheusags.ai"}/editor/theme?theme=${id}`;
 
     setShareUrl(url);
     setShareDialogOpen(true);
@@ -187,7 +187,7 @@ export function DialogActionsProvider({ children }: { children: ReactNode }) {
   const store = useDialogActionsStore();
 
   return (
-    <DialogActionsContext value={store}>
+    <DialogActionsContext.Provider value={store}>
       {children}
 
       {/* Global Dialogs */}
@@ -212,7 +212,7 @@ export function DialogActionsProvider({ children }: { children: ReactNode }) {
         onOpenChange={store.setShareDialogOpen}
         url={store.shareUrl}
       />
-    </DialogActionsContext>
+    </DialogActionsContext.Provider>
   );
 }
 
